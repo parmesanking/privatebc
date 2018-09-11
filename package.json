@@ -1,0 +1,16 @@
+{
+  "name": "privatebc",
+  "version": "1.0.0",
+  "description": "My own private blockchain",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Luca Agostini",
+  "license": "ISC",
+  "dependencies": {
+    "crypto-js": "^3.1.9-1",
+    "level": "^4.0.0",
+    "rwlock": "^5.0.0"
+  }
+}

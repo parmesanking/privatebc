@@ -6,7 +6,7 @@ That's my first private blockchain in action. All methods are Promise based. Enj
 To get started developing right away:
 
 * install all project dependencies with `npm install`
-* start the chain with `npm start`
+* start the chain and related tests with `npm start`
 
 ## What You're Getting
 ```bash

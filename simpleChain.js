@@ -28,6 +28,10 @@ class Blockchain {
     this.lock = new ReadWriteLock();
   }
 
+  /**
+   * It loads the chain adding genesys block if necessary
+   * Returns bool through promise
+   */
   initialize() {
     //Verify for genesys block
     return this.getBlockHeight().then(height => {
@@ -46,7 +50,12 @@ class Blockchain {
       }
     });
   }
-  // Add new block
+
+  /**
+   * Add new block
+   * Returns bool through promise 
+   * @param {object} newBlock 
+   */
   addBlock(newBlock) {
     // that fn must run one at once
     return new Promise((resolve, reject) => {
@@ -97,12 +106,19 @@ class Blockchain {
     });
   }
 
-  // Get block height
+  /**
+   * Get block height
+   * Returns int through promise
+   */
   getBlockHeight() {
     return DB.getLastIndex().then(i => i);
   }
 
-  // get block
+  /**
+   * get block
+   * Returns block object through promise
+   * @param {int} blockHeight
+   */
   getBlock(blockHeight) {
     if (!this.initialized) {
       return Promise.reject("Chain not ready yet!");
@@ -113,7 +129,12 @@ class Blockchain {
     });
   }
 
-  // validate block
+  //Returns bool through promise
+  /**
+   * Validate a block of the chain
+   * Returns bool through promise
+   * @param {int} blockHeight 
+   */
   validateBlock(blockHeight) {
     return this.getBlock(blockHeight).then(block => {
       // got block object
@@ -139,8 +160,11 @@ class Blockchain {
       }
     });
   }
-
-  // Validate blockchain
+  
+  /**
+   * Validate entire  blockchain [every block + block links]
+   * Returns bool through promise
+   */
   validateChain() {
     return new Promise((resolve, reject) => {
       let errorLog = [];
@@ -164,7 +188,6 @@ class Blockchain {
             validations.push(
               this.getBlock(i).then(block => {
                 return this.getBlock(block.height - 1).then(prevBlock => {
-              
                   if (prevBlock.hash !== block.previousBlockHash) {
                     errorLog.push(block.height);
                     return false;

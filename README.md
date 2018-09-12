@@ -11,7 +11,7 @@ To get started developing right away:
 ## What You're Getting
 ```bash
 ├── README.md - # This file.
-├── package.json # npm package manager file. It's unlikely that you'll need to modify this.
+├── package.json # npm package manager file
 ├── index.js # a script with api invoke for test and chain initialization
 ├── levelSandbox.js # wrapper over LevelDB api
 └── simpleChain.js # that's the core containing chain logic

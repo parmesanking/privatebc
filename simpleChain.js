@@ -1,22 +1,7 @@
-/* ===== SHA256 with Crypto-js ===============================
-|  Learn more: Crypto-js: https://github.com/brix/crypto-js  |
-|  =========================================================*/
-
 const SHA256 = require("crypto-js/sha256");
 const DB = require("./levelSandbox");
 const ReadWriteLock = require("rwlock");
-/* ===== Block Class ==============================
-|  Class with a constructor for block 			   |
-|  ===============================================*/
-class Block {
-  constructor(data) {
-    (this.hash = ""),
-      (this.height = 0),
-      (this.body = data),
-      (this.time = 0),
-      (this.previousBlockHash = "");
-  }
-}
+const Block = require("./Block");
 
 /* ===== Blockchain Class ==========================
 |  Class with a constructor for new blockchain 		|
@@ -26,45 +11,45 @@ class Blockchain {
   constructor() {
     this.initialized = false;
     this.lock = new ReadWriteLock();
-  }
-
-  /**
-   * It loads the chain adding genesys block if necessary
-   * Returns bool through promise
-   */
-  initialize() {
-    //Verify for genesys block
-    return this.getBlockHeight().then(height => {
+    this.getBlockHeight().then(height => {
       if (height === 0) {
-        return this.addBlock(
+        this.addBlock(
           new Block("First block in the chain - Genesis block")
         ).then(res => {
           if (res) {
+            console.log("Genesis block added");
             this.initialized = true;
           }
-          return res;
         });
       } else {
         this.initialized = true;
-        return true;
       }
     });
   }
 
+  get isReady() {
+    return this.initialized;
+  }
+  set isReady(v) {
+    throw new Error("This property is readonly");
+  }
+
   /**
    * Add new block
-   * Returns bool through promise 
-   * @param {object} newBlock 
+   * Returns bool through promise or callback
+   * @param {object} newBlock
    */
-  addBlock(newBlock) {
-    // that fn must run one at once
-    return new Promise((resolve, reject) => {
+  addBlock(newBlock, callback = null) {
+    let prom = new Promise((resolve, reject) => {
+      // that fn must run one at once
       this.lock.writeLock(releaseLock => {
         this.getBlockHeight().then(height => {
           //Verify if blockchain is ready
           if (!this.initialized && height > 0) {
             releaseLock();
-            return reject();
+            console.error("Chain is not ready yet!");
+            callback && callback(false);
+            resolve(false);
           }
 
           // Block height
@@ -93,50 +78,82 @@ class Blockchain {
             DB.addDataToLevelDB(JSON.stringify(newBlock))
               .then(res => {
                 releaseLock();
+                callback && callback(res);
                 resolve(res);
               })
               .catch(err => {
                 console.err("Unable to add new block", err);
                 releaseLock();
-                reject();
+                callback && callback(false);
+                resolve(false);
               });
           });
         });
       });
     });
+    if (callback) {
+      prom.then(block => console.log("New block:", block));
+    } else {
+      return prom;
+    }
   }
 
   /**
    * Get block height
-   * Returns int through promise
+   * Returns int through promise or through callback
    */
-  getBlockHeight() {
-    return DB.getLastIndex().then(i => i);
+  getBlockHeight(callback = null) {
+    let prom = DB.getLastIndex()
+      .then(i => {
+        callback && callback(i);
+        return i;
+      })
+      .catch(err => {
+        console.error("Unable to get BlockHeight", err);
+        callback && callback(false);
+      });
+    if (callback) {
+      prom.then(i => {
+        console.log("Block Height", i);
+      });
+    } else {
+      return prom;
+    }
   }
 
   /**
    * get block
-   * Returns block object through promise
+   * Returns block object through promise or callback
    * @param {int} blockHeight
    */
-  getBlock(blockHeight) {
+  getBlock(blockHeight, callback = null) {
     if (!this.initialized) {
-      return Promise.reject("Chain not ready yet!");
+      console.error("Chain is not ready yet!");
+      callback && callback(false);
     }
     // return object as a single string
-    return DB.getLevelDBData(blockHeight).then(block => {
-      return JSON.parse(block);
+    let prom = DB.getLevelDBData(blockHeight).then(block => {
+      let blk = JSON.parse(block);
+      callback && callback(blk);
+      return blk;
     });
+
+    if (callback) {
+      prom.then(block => console.log("Block:", block));
+    } else {
+      //Return promisified block
+      return prom;
+    }
   }
 
   //Returns bool through promise
   /**
    * Validate a block of the chain
-   * Returns bool through promise
-   * @param {int} blockHeight 
+   * Returns bool through promise or callback
+   * @param {int} blockHeight
    */
-  validateBlock(blockHeight) {
-    return this.getBlock(blockHeight).then(block => {
+  validateBlock(blockHeight, callback = null) {
+    let prom = this.getBlock(blockHeight).then(block => {
       // got block object
       // get block hash
       let blockHash = block.hash;
@@ -146,6 +163,7 @@ class Blockchain {
       let validBlockHash = SHA256(JSON.stringify(block)).toString();
       // Compare
       if (blockHash === validBlockHash) {
+        callback && callback(true);
         return true;
       } else {
         console.log(
@@ -156,17 +174,24 @@ class Blockchain {
             "<>" +
             validBlockHash
         );
+        callback && callback(false);
         return false;
       }
     });
+
+    if (callback) {
+      prom.then(res => console.log("Block valid?", res));
+    } else {
+      return prom;
+    }
   }
-  
+
   /**
    * Validate entire  blockchain [every block + block links]
-   * Returns bool through promise
+   * Returns bool through promise or callback
    */
-  validateChain() {
-    return new Promise((resolve, reject) => {
+  validateChain(callback = null) {
+    let prom = new Promise((resolve, reject) => {
       let errorLog = [];
       //Count all blocks in chain
       this.getBlockHeight().then(height => {
@@ -204,11 +229,18 @@ class Blockchain {
             console.log("Block errors = " + errorLog.length);
             console.log("Blocks: " + errorLog);
           }
+          callback && callback(errorLog.length === 0);
           return resolve(errorLog.length === 0);
         });
       });
     });
+
+    if (callback) {
+      prom.then(res => console.log("Chain valid?", res));
+    } else {
+      return prom;
+    }
   }
 }
 
-module.exports = { Block, Blockchain };
+module.exports = Blockchain;

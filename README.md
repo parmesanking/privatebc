@@ -1,5 +1,5 @@
 # MyPrivate Blockchain Project
-That's my first private blockchain in action. All methods are Promise based. Enjoy it!
+That's my first private blockchain in action. All methods are Promise based or can be invoked with callback fn. Enjoy it!
 
 
 ## TL;DR

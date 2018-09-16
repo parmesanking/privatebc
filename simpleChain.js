@@ -16,7 +16,7 @@ class Blockchain {
         this.addBlock(
           new Block("First block in the chain - Genesis block")
         ).then(res => {
-          if (res) {
+          if (res.success) {
             console.log("Genesis block added");
             this.initialized = true;
           }
@@ -48,8 +48,8 @@ class Blockchain {
           if (!this.initialized && height > 0) {
             releaseLock();
             console.error("Chain is not ready yet!");
-            callback && callback(false);
-            resolve(false);
+            callback && callback({success:false, height: null});
+            resolve({success:false, height: null});
           }
 
           // Block height
@@ -84,8 +84,8 @@ class Blockchain {
               .catch(err => {
                 console.err("Unable to add new block", err);
                 releaseLock();
-                callback && callback(false);
-                resolve(false);
+                callback && callback({success:false, height: null});
+                resolve({success:false, height: null});
               });
           });
         });

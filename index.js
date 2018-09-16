@@ -9,7 +9,7 @@ setTimeout(() => {
     //5: Generate 10 blocks using a for loop
     for (var i = 0; i <= 10; i++) {
       blockchain.addBlock(new Block("test data " + i), res => {
-        console.log("Added block", res);
+        console.log("Added block", res.success);
       });
     }
 

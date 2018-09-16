@@ -14,7 +14,7 @@ function addLevelDBData(key, value) {
         console.log("Block " + key + " submission failed", err);
         reject(err);
       } else {
-        resolve(true);
+        resolve({success:true, height:key});
       }
     });
   });

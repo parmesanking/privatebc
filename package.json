@@ -4,7 +4,8 @@
   "description": "My own private blockchain",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js", 
+    "web":"node web.js"
   },
   "engines": {
     "node": ">=8.11.2"

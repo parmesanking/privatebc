@@ -19,5 +19,35 @@ To get started developing right away:
 ├── levelSandbox.js # wrapper over LevelDB api
 ├── simpleChain.js # that's the core containing chain logic
 └── web.js # web service entry point 
+```
 
+## Web framework used 
+Express (http://www.expressjs.com)
+
+
+## Endpoints
+Use a software like postman or CURL to send the requests to the base url http://localhost:8000 with one of the below supported endpoints:
+
+- GET
+/block/{BLOCK_HEIGHT}
+
+    Params: 
+    + BLOCK_HEIGHT    Number value
+    
+    example:
+
+```
+curl http://localhost:8000/block/0
+```
+
+- POST
+/block
+
+    Params: 
+    + BODY    json object with body param like {"body": "Test data"}
+
+example:
+
+```
+curl -X "POST" "http://localhost:8000/block" -H 'Content-Type: application/json' -d $'{"body":"block body contents"}'
 ```

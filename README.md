@@ -40,13 +40,14 @@ Use a software like postman or CURL to send the requests to the base url http://
 curl http://localhost:8000/block/0
 ```
 
+
 - POST
 /block
 
     Params: 
     + BODY    json object with body param like {"body": "Test data"}
 
-example:
+    example:
 
 ```
 curl -X "POST" "http://localhost:8000/block" -H 'Content-Type: application/json' -d $'{"body":"block body contents"}'

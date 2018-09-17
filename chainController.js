@@ -13,7 +13,7 @@ const getBlock = (req, res) => {
 
 const setBlock = (req, res) => {
   let data = req.body.body;
-  if (!data) {
+  if (!data || !(typeof data === 'string' || data instanceof String)) {
     return res.status(500).send("Invalid data passed.");
   }
   req.chain.addBlock(new Block(data)).then(result => {

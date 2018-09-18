@@ -4,8 +4,8 @@
   "description": "My own private blockchain",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js", 
-    "web":"node web.js"
+    "start": "node index.js",
+    "web": "node web.js"
   },
   "engines": {
     "node": ">=8.11.2"
@@ -21,6 +21,7 @@
     "crypto-js": "^3.1.9-1",
     "express": "^4.16.3",
     "level": "^4.0.0",
+    "moment": "^2.22.2",
     "rwlock": "^5.0.0"
   }
 }

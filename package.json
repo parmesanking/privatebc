@@ -17,11 +17,13 @@
   "author": "Luca Agostini",
   "license": "ISC",
   "dependencies": {
+    "bitcoinjs-message": "^2.0.0",
     "body-parser": "^1.18.3",
     "crypto-js": "^3.1.9-1",
     "express": "^4.16.3",
     "level": "^4.0.0",
     "moment": "^2.22.2",
-    "rwlock": "^5.0.0"
+    "rwlock": "^5.0.0",
+    "wallet-address-validator": "^0.2.0"
   }
 }

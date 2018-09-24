@@ -10,22 +10,17 @@ const VALIDATION_WINDOW_TIME = 300;
 const getBlock = (req, res) => {
   let height = req.params.height;
   if (isNaN(height)) {
-    if (res) {
-      res.status(500).send("Invalid block height");
-    } else {
-      throw new Error("Invalid block height");
-    }
+    res.status(500).send("Invalid block height");
   }
   return req.chain
     .getBlock(height)
-    .then(block => (res ? res.send(block) : block))
-    .catch(err => {
-      if (res) {
-        res.status(500).send("Unable to find requested block");
-      } else {
-        throw new Error("Unable to find requested block");
+    .then(block => {
+      if (block.body.star && block.body.star.story) {
+        block.body.star.storyDecoded = hex2a(block.body.star.story);
       }
-    });
+      res.send(block);
+    })
+    .catch(err => res.status(500).send("Unable to find requested block"));
 };
 
 /**
@@ -219,12 +214,7 @@ const getStars = (req, res) => {
 
   if (query[0] === "height") {
     req.params.height = query[1];
-    getBlock(req).then(block => {
-      if (block.body.star && block.body.star.story) {
-        block.body.star.storyDecoded = hex2a(block.body.star.story);
-      }
-      res.send(block)
-    });
+    getBlock(req, res);
   } else if (query[0] === "address" || query[0] === "hash") {
     req.chain.getBlockHeight().then(height => {
       let ope = [];

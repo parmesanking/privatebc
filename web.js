@@ -8,15 +8,16 @@ const LISTENPORT = process.env.PORT || 8000;
 const blockchain = new Blockchain();
 
 app.use(bodyParser.json({ limit: "50mb" }));
-//Clean expired validation request
+
+//Clean expired validation request (it runs on top of all requests)
 app.use((req, res, next) => {
   app.locals.userReqs = (app.locals.userReqs ||[]).filter(
-    uReq => true //chaintCTRL.getValidationWindow(uReq.requestTimeStamp) > 0
+    uReq => chaintCTRL.getValidationWindow(uReq.requestTimeStamp) > 0
   );
   next();
 });
 
-//Decorate all requests with blockchain and userRequests Buffer
+//Decorate all requests with blockchain
 app.use((req, res, next) => {
   req.chain = blockchain;
   next();
@@ -25,13 +26,11 @@ app.use((req, res, next) => {
 
 
 app.route("/block/:height").get(chaintCTRL.getBlock);
-app.route("/block").post(chaintCTRL.setBlock);
+//app.route("/block").post(chaintCTRL.setBlock);
+app.route("/block").post(chaintCTRL.addStar);
 app.route("/requestValidation").post(chaintCTRL.requestValidation);
 app.route("/message-signature/validate").post(chaintCTRL.validateSignature)
-
-app.route("/yo").get((req, res) => {
-  res.json(req.userReqs);
-});
+app.route("/stars/:query").get(chaintCTRL.getStars)
 http
   .createServer(app)
   .listen(LISTENPORT, () => console.log("Server listening on", LISTENPORT));

@@ -28,27 +28,85 @@ Express (http://www.expressjs.com)
 ## Endpoints
 Use a software like postman or CURL to send the requests to the base url http://localhost:8000 with one of the below supported endpoints:
 
-- GET
-/block/{BLOCK_HEIGHT}
+- Validate user request for message signing
+  
+POST /requestValidation
+
+Address must be a valid BITCOIN address
 
     Params: 
-    + BLOCK_HEIGHT    Number value
-    
-    example:
-
-```
-curl http://localhost:8000/block/0
-```
-
-
-- POST
-/block
-
-    Params: 
-    + BODY    json object with body param like {"body": "Test data"}
+    + BODY    json object with body param like {"address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ" }
 
     example:
 
 ```
-curl -X "POST" "http://localhost:8000/block" -H 'Content-Type: application/json' -d $'{"body":"block body contents"}'
+curl -X "POST" "http://localhost:8000/requestValidation" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ"
+}'
+```
+
+- Validate user message signing
+  
+POST /message-signature/validate
+
+Simulation can be done signing a message with Electrum tool (www.electrum.org)
+
+    Params: 
+    + BODY    json object with body param like {"address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ", "signature":"XYZ..." }
+
+    example:
+
+```
+curl -X "POST" "http://localhost:8000/message-signature/validate" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+  "signature": "H6ZrGrF0Y4rMGBMRT2+hHWGbThTIyhBS0dNKQRov9Yg6GgXcHxtO9GJN4nwD2yNXpnXHTWU9i+qdw5vpsooryLU="
+}'
+```
+
+- Star Registration Endpoint
+  
+POST /block
+
+    Params: 
+    + BODY    json object with body param like 
+                {
+                "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+                "star": {
+                "dec": "-26° 29' 24.9",
+                "ra": "16h 29m 1.0s",
+                "story": "Found star using https://www.google.com/sky/"
+                }
+
+    example:
+
+```
+curl -X "POST" "http://localhost:8000/block" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "address": "142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ",
+  "star": {
+    "dec": "-26° 29'\'' 24.9",
+    "ra": "16h 29m 1.0s",
+    "story": "Found star using https://www.google.com/sky/"
+  }
+}'
+```
+
+
+- Star Lookup Endpoints
+  
+GET /stars/height:[HEIGHT]
+
+GET /stars/address:[ADDRESS]
+
+GET /stars/hash:[HASH]
+
+    example:
+
+```
+curl "http://localhost:8000/stars/address:142BDCeSGbXjWKaAnYXbMpZ6sbrSAo3DpZ"
 ```

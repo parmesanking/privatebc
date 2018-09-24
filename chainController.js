@@ -10,12 +10,22 @@ const VALIDATION_WINDOW_TIME = 300;
 const getBlock = (req, res) => {
   let height = req.params.height;
   if (isNaN(height)) {
-    return res.status(500).send("Invalid block height.");
+    if (res) {
+      res.status(500).send("Invalid block height");
+    } else {
+      throw new Error("Invalid block height");
+    }
   }
-  req.chain
+  return req.chain
     .getBlock(height)
-    .then(block => res.send(block))
-    .catch(err => res.status(500).send("Unable to find requested block"));
+    .then(block => (res ? res.send(block) : block))
+    .catch(err => {
+      if (res) {
+        res.status(500).send("Unable to find requested block");
+      } else {
+        throw new Error("Unable to find requested block");
+      }
+    });
 };
 
 /**
@@ -168,6 +178,17 @@ const addStar = (req, res) => {
   if (star.story.length > 250) {
     return res.status(500).send("Too long star story, please reduce it.");
   }
+
+  //Look for existing user request
+  let userRequest = req.app.locals.userReqs.filter(
+    uReq => uReq.address === address
+  )[0];
+  if (!userRequest) {
+    return res
+      .status(500)
+      .send("That address is not allowed to register stars");
+  }
+
   star.story = a2hex(star.story);
   !star.mag && delete star.mag;
   !star.constellation && delete star.constellation;
@@ -176,6 +197,10 @@ const addStar = (req, res) => {
   req.chain.addBlock(new Block({ address, star })).then(result => {
     if (result.success) {
       req.params.height = result.height;
+      //Remove user request from queue
+      req.app.locals.userReqs = (req.app.locals.userReqs || []).filter(
+        uReq => uReq.address !== address
+      );
       getBlock(req, res);
     } else {
       res.status(500).send("Error adding a new block.");
@@ -194,7 +219,12 @@ const getStars = (req, res) => {
 
   if (query[0] === "height") {
     req.params.height = query[1];
-    getBlock(req, res);
+    getBlock(req).then(block => {
+      if (block.body.star && block.body.star.story) {
+        block.body.star.storyDecoded = hex2a(block.body.star.story);
+      }
+      res.send(block)
+    });
   } else if (query[0] === "address" || query[0] === "hash") {
     req.chain.getBlockHeight().then(height => {
       let ope = [];
@@ -216,6 +246,12 @@ const getStars = (req, res) => {
       }
       Promise.all(ope)
         .then(result => {
+          stars.map(block => {
+            if (block.body.star && block.body.star.story) {
+              block.body.star.storyDecoded = hex2a(block.body.star.story);
+            }
+          });
+
           //send the answer
           res.send(stars);
         })
@@ -223,7 +259,6 @@ const getStars = (req, res) => {
     });
   }
 };
-
 
 const getValidationWindow = from => {
   return moment
@@ -239,6 +274,15 @@ const a2hex = str => {
   }
   return arr.join("");
 };
+
+const hex2a = hexx => {
+  let hex = hexx.toString(); //force conversion
+  let str = "";
+  for (let i = 0; i < hex.length && hex.substr(i, 2) !== "00"; i += 2)
+    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+  return str;
+};
+
 module.exports = {
   getBlock,
   setBlock,
